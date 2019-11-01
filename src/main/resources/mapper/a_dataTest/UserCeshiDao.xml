@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gzhangming.apartment.practice.business.a_dataTest.dao.UserCeshiDao">
+    <!-- 输出字段列 -->
+	<sql id="userCeshiColumns">
+       a.id as "id",
+       a.name as "name"
+	</sql>
+
+    <resultMap id="user" type="com.gzhangming.apartment.practice.business.a_dataTest.dto.vo.UserCeshiVo"/>
+    <parameterMap id="user" type="com.gzhangming.apartment.practice.business.a_dataTest.dto.vo.UserCeshiVo"/>
+
+	<!-- 输出字段关联表 -->
+    <sql id="userCeshiJoins">
+    </sql>
+
+    <!-- 查询单条记录(重写)  -->
+    <select id="getList" resultMap="user">
+        select <include refid="userCeshiColumns"/> from user_ceshi as a where a.id=#{id}
+    </select>
+
+
+
+
+    <!-- 查询单条记录 -->
+    <select id="single" resultType="com.gzhangming.apartment.practice.business.a_dataTest.entity.UserCeshi">
+        SELECT
+            <include refid="userCeshiColumns"/>
+        FROM user_ceshi a
+        <include refid="userCeshiJoins"/>
+        WHERE a.IsDeleted = 1 and a.id = #{id}
+    </select>
+
+    <!-- 查询列表 -->
+    <select id="list" resultType="com.gzhangming.apartment.practice.business.a_dataTest.entity.UserCeshi">
+        SELECT
+            <include refid="userCeshiColumns"/>
+        FROM user_ceshi a
+        <include refid="userCeshiJoins"/>
+        <where>
+            a.IsDeleted = 1
+            <if test="@hans.common.util.ExpandUtil@validStr(name)">
+                AND a.name = #{name}
+            </if>
+        </where>
+        <choose>
+            <when test="@hans.common.util.ExpandUtil@validStr(orderBy)">
+                ORDER BY ${orderBy}
+            </when>
+            <otherwise>
+                ORDER BY a.CreateTime DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 插入 -->
+    <insert id="insert">
+        INSERT INTO user_ceshi(
+            id,
+            name
+            IsDeleted,
+            CreateUserId,
+            CreateUserName,
+            CreateTime
+        ) VALUES (
+            #{id},
+            #{name}
+            1,
+            '${@hans.common.util.CurrentUser@oauthId()}',
+            '${@hans.common.util.CurrentUser@oauthName()}',
+            NOW()
+        )
+    </insert>
+
+    <!-- 修改 -->
+    <update id="update">
+        UPDATE user_ceshi SET
+            name = #{name}
+            UpdateUserId = '${@hans.common.util.CurrentUser@oauthId()}',
+            UpdateUserName = '${@hans.common.util.CurrentUser@oauthName()}',
+            UpdateTime = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据id修改实体中不为null的列 -->
+    <update id="updateExistById">
+        UPDATE user_ceshi SET
+                        <if test="@hans.common.util.ExpandUtil@validStr(name)">
+                            name = #{name}
+                        </if>
+            UpdateUserId = '${@hans.common.util.CurrentUser@oauthId()}',
+            UpdateUserName = '${@hans.common.util.CurrentUser@oauthName()}',
+            UpdateTime = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除 -->
+    <update id="delete">
+        UPDATE user_ceshi SET
+            IsDeleted = 2,
+            DeleteUserId = '${@hans.common.util.CurrentUser@oauthId()}',
+            DeleteUserName = '${@hans.common.util.CurrentUser@oauthName()}',
+            DeleteTime = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" index="index" open="(" separator="," close=")">
+           #{id}
+        </foreach>
+    </update>
+
+    <!-- 查询唯一记录 -->
+    <select id="findUniqueByProperty" resultType="com.gzhangming.apartment.practice.business.a_dataTest.entity.UserCeshi">
+        SELECT
+            <include refid="userCeshiColumns"/>
+        FROM user_ceshi a
+        <include refid="userCeshiJoins"/>
+        WHERE a.IsDeleted = 1 and ${propertyName} = #{value}
+    </select>
+</mapper>
